@@ -44,32 +44,54 @@ impl Board {
             }
         }
     }
-    // need to figure it out how to make first row work.
     pub fn next_board_state(boardd: Self) -> Self {
         let mut total_turns_count = 0;
         let mut board = boardd;
         while total_turns_count < board.height {
-            for i in 1..board.height - 1 {
-                for j in 1..board.width - 1 {
+            for i in 0..board.height - 1 {
+                for j in 0..board.width - 1 {
+                    let mut neighboors: Vec<u8> = vec![];
+                    if i > 0 {
+                        let above_cell = board.board[i - 1][j];
+                        neighboors.push(above_cell);
+                    }
+
+                    if i < board.height {
+                        let below_cell = board.board[i + 1][j];
+                        neighboors.push(below_cell);
+                    }
+
+                    if j > 0 {
+                        let left_cell = board.board[i][j - 1];
+                        neighboors.push(left_cell);
+                    }
+
+                    if j < board.width {
+                        let right_cell = board.board[i][j + 1];
+                        neighboors.push(right_cell);
+                    }
+
+                    if j > 0 && i > 0 {
+                        let above_left_cell = board.board[i - 1][j - 1];
+                        neighboors.push(above_left_cell);
+                    }
+
+                    if j < board.width && i < board.height {
+                        let below_right_cell = board.board[i + 1][j + 1];
+                        neighboors.push(below_right_cell);
+                    }
+
+                    if j > 0 && i < board.height {
+                        let below_left_cell = board.board[i + 1][j - 1];
+                        neighboors.push(below_left_cell);
+                    }
+
+                    if j < board.width && i > 0 {
+                        let above_right_cell = board.board[i - 1][j + 1];
+                        neighboors.push(above_right_cell);
+                    }
+
                     let current_cell = board.board[i][j];
-                    let right_cell = board.board[i][j + 1];
-                    let above_cell = board.board[i - 1][j];
-                    let left_cell = board.board[i][j - 1];
-                    let above_right_cell = board.board[i - 1][j + 1];
-                    let above_left_cell = board.board[i - 1][j - 1];
-                    let below_cell = board.board[i + 1][j];
-                    let below_right_cell = board.board[i + 1][j + 1];
-                    let below_left_cell = board.board[i + 1][j - 1];
-                    let neighboors = vec![
-                        right_cell,
-                        left_cell,
-                        above_cell,
-                        above_right_cell,
-                        above_left_cell,
-                        below_cell,
-                        below_right_cell,
-                        below_left_cell,
-                    ];
                     let mut alive_cells_count = 0;
                     if current_cell == 1 {
                         alive_cells_count += 1
@@ -109,14 +131,14 @@ mod tests {
     fn change_state_test() {
         let board = Board {
             width: 3,
-            height: 4,
-            board: vec![vec![0, 0, 0], vec![0, 0, 1], vec![0, 1, 1], vec![0, 0, 0]],
+            height: 3,
+            board: vec![vec![0, 0, 1], vec![0, 1, 1], vec![0, 0, 0]],
         };
         let next_state = Board::next_board_state(board);
         let expected_state = Board {
             width: 3,
-            height: 4,
-            board: vec![vec![0, 0, 0], vec![0, 1, 1], vec![0, 1, 1], vec![0, 0, 0]],
+            height: 3,
+            board: vec![vec![0, 1, 1], vec![0, 1, 1], vec![0, 0, 0]],
         };
         assert_eq!(next_state.board, expected_state.board);
     }
