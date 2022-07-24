@@ -1,8 +1,10 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use rand::Rng;
-use std::mem;
+use std::fs;
+use std::thread::sleep;
+use std::time::Duration;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Board {
     pub width: usize,
     pub height: usize,
@@ -44,85 +46,118 @@ impl Board {
             }
         }
     }
-    pub fn next_board_state(boardd: Self) -> Self {
-        let mut total_turns_count = 0;
-        let mut board = boardd;
-        while total_turns_count < board.height {
-            for i in 0..board.height - 1 {
-                for j in 0..board.width - 1 {
-                    let mut neighboors: Vec<u8> = vec![];
-                    if i > 0 {
-                        let above_cell = board.board[i - 1][j];
-                        neighboors.push(above_cell);
-                    }
+    // let above_cell = board.board[i - 1][j];
+    // let below_cell = board.board[i + 1][j];
+    // let left_cell = board.board[i][j - 1];
+    // let right_cell = board.board[i][j + 1];
+    // let above_left_cell = board.board[i - 1][j - 1];
+    // let below_right_cell = board.board[i + 1][j + 1];
+    // let below_left_cell = board.board[i + 1][j - 1];
+    // let above_right_cell = board.board[i - 1][j + 1];
+    // let neighboors = vec![
+    //     above_cell,
+    //     below_cell,
+    //     left_cell,
+    //     right_cell,
+    //     above_left_cell,
+    //     below_right_cell,
+    //     below_left_cell,
+    //     above_right_cell,
+    // ];
+    pub fn next_board_state(board: Self) -> Self {
+        let mut new_board = Board::dead_state(board.height, board.width);
+        for i in 1..board.height - 1 {
+            for j in 1..board.width - 1 {
+                let alive = 1;
+                let mut neighboors: Vec<u8> = vec![];
 
-                    if i < board.height {
-                        let below_cell = board.board[i + 1][j];
-                        neighboors.push(below_cell);
-                    }
+                let mut alive_cells_count = 0;
 
-                    if j > 0 {
-                        let left_cell = board.board[i][j - 1];
-                        neighboors.push(left_cell);
-                    }
+                if i > 0 {
+                    let above_cell = board.board[i - 1][j];
+                    neighboors.push(above_cell);
+                }
 
-                    if j < board.width {
-                        let right_cell = board.board[i][j + 1];
-                        neighboors.push(right_cell);
-                    }
+                if i < board.height {
+                    let below_cell = board.board[i + 1][j];
+                    neighboors.push(below_cell);
+                }
 
-                    if j > 0 && i > 0 {
-                        let above_left_cell = board.board[i - 1][j - 1];
-                        neighboors.push(above_left_cell);
-                    }
+                if j > 0 {
+                    let left_cell = board.board[i][j - 1];
+                    neighboors.push(left_cell);
+                }
 
-                    if j < board.width && i < board.height {
-                        let below_right_cell = board.board[i + 1][j + 1];
-                        neighboors.push(below_right_cell);
-                    }
+                if j < board.width {
+                    let right_cell = board.board[i][j + 1];
+                    neighboors.push(right_cell);
+                }
 
-                    if j > 0 && i < board.height {
-                        let below_left_cell = board.board[i + 1][j - 1];
-                        neighboors.push(below_left_cell);
-                    }
+                if j > 0 && i > 0 {
+                    let above_left_cell = board.board[i - 1][j - 1];
+                    neighboors.push(above_left_cell);
+                }
 
-                    if j < board.width && i > 0 {
-                        let above_right_cell = board.board[i - 1][j + 1];
-                        neighboors.push(above_right_cell);
-                    }
+                if j < board.width && i < board.height {
+                    let below_right_cell = board.board[i + 1][j + 1];
+                    neighboors.push(below_right_cell);
+                }
 
-                    let current_cell = board.board[i][j];
-                    let mut alive_cells_count = 0;
-                    if current_cell == 1 {
+                if j > 0 && i < board.height {
+                    let below_left_cell = board.board[i + 1][j - 1];
+                    neighboors.push(below_left_cell);
+                }
+
+                if j < board.width && i > 0 {
+                    let above_right_cell = board.board[i - 1][j + 1];
+                    neighboors.push(above_right_cell);
+                }
+
+                for cell in &neighboors {
+                    if cell == &alive {
                         alive_cells_count += 1
                     }
-                    for cell in neighboors {
-                        if cell == 1 {
-                            alive_cells_count += 1
-                        }
-                    }
-                    if alive_cells_count == 3 {
-                        board.board[i][j] = 1;
-                    } else if alive_cells_count <= 1 {
-                        board.board[i][j] = 0;
-                    } else if alive_cells_count == 2 {
-                        board.board[i][j] = board.board[i][j];
-                        continue;
-                    } else if alive_cells_count > 3 {
-                        board.board[i][j] = 0;
-                    }
                 }
-                // needs to be here for while loop to work
-                total_turns_count += 1;
+                // println!("{:?}", neighboors);
+
+                match alive_cells_count {
+                    x if x == 3 => new_board.board[i][j] = 1,
+                    x if x >= 3 => new_board.board[i][j] = 0,
+                    x if x <= 1 => new_board.board[i][j] = 0,
+                    x if x == 2 => new_board.board[i][j] = board.board[i][j],
+                    _ => println!("error"),
+                }
             }
         }
-        board
+        new_board
     }
-}
+    pub fn infinite_loop(board: Self) {
+        sleep(Duration::from_millis(300));
+        Board::render(board.clone());
+        Board::infinite_loop(Board::next_board_state(board));
+    }
+    pub fn search<'a>(contents: &'a str) -> Result<Vec<Vec<u8>>> {
+        let mut vec = vec![];
+        for line in contents.lines() {
+            vec.push(vec![line.parse::<u8>()?]);
+        }
+        Ok(vec)
+    }
 
-enum BoardState {
-    Alive,
-    Dead,
+    pub fn load_board_state() -> Result<Board> {
+        let file = fs::read_to_string("toad.txt")?;
+        let mut cnt = 0;
+        let vec = Board::search(&file)?;
+        // let mut width = 0;
+        for _ in file.lines() {
+            cnt = cnt + 1;
+        }
+        Ok(Board {
+            width: 6,
+            height: cnt,
+            board: vec,
+        })
+    }
 }
 
 mod tests {
