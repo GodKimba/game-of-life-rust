@@ -37,7 +37,7 @@ impl Board {
                 if board.board[i][j] == 1 {
                     print!(" # ");
                 } else {
-                    print!(" - ");
+                    print!("   ");
                 }
                 if counter == board.width {
                     println!("");
@@ -46,24 +46,6 @@ impl Board {
             }
         }
     }
-    // let above_cell = board.board[i - 1][j];
-    // let below_cell = board.board[i + 1][j];
-    // let left_cell = board.board[i][j - 1];
-    // let right_cell = board.board[i][j + 1];
-    // let above_left_cell = board.board[i - 1][j - 1];
-    // let below_right_cell = board.board[i + 1][j + 1];
-    // let below_left_cell = board.board[i + 1][j - 1];
-    // let above_right_cell = board.board[i - 1][j + 1];
-    // let neighboors = vec![
-    //     above_cell,
-    //     below_cell,
-    //     left_cell,
-    //     right_cell,
-    //     above_left_cell,
-    //     below_right_cell,
-    //     below_left_cell,
-    //     above_right_cell,
-    // ];
     pub fn next_board_state(board: Self) -> Self {
         let mut new_board = Board::dead_state(board.height, board.width);
         for i in 1..board.height - 1 {
@@ -118,11 +100,10 @@ impl Board {
                         alive_cells_count += 1
                     }
                 }
-                // println!("{:?}", neighboors);
 
                 match alive_cells_count {
                     x if x == 3 => new_board.board[i][j] = 1,
-                    x if x >= 3 => new_board.board[i][j] = 0,
+                    x if x > 3 => new_board.board[i][j] = 0,
                     x if x <= 1 => new_board.board[i][j] = 0,
                     x if x == 2 => new_board.board[i][j] = board.board[i][j],
                     _ => println!("error"),
@@ -133,6 +114,7 @@ impl Board {
     }
     pub fn infinite_loop(board: Self) {
         sleep(Duration::from_millis(300));
+        println!("---------------------------------------------------------");
         Board::render(board.clone());
         Board::infinite_loop(Board::next_board_state(board));
     }
